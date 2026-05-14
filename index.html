@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrollBot 9000</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom scrollbar for a polished look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        .typing-indicator span {
+            animation: blink 1.4s infinite both;
+            height: 6px;
+            width: 6px;
+            background-color: #3b82f6;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 1px;
+        }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes blink {
+            0% { opacity: 0.2; transform: scale(0.8); }
+            20% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0.2; transform: scale(0.8); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 h-screen flex items-center justify-center p-4 font-sans">
+
+    <!-- Chat Container -->
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden flex flex-col h-[600px] max-h-full">
+        
+        <!-- Header -->
+        <div class="bg-blue-600 p-4 text-white flex items-center shadow-md z-10">
+            <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-2xl shadow-inner mr-3">
+                🤖
+            </div>
+            <div>
+                <h1 class="font-bold text-lg leading-tight">talkCEF</h1>
+                <p class="text-xs text-blue-200">Online | Ready to assist</p>
+            </div>
+        </div>
+
+        <!-- Messages Area -->
+        <div id="chat-messages" class="flex-1 p-4 overflow-y-auto flex flex-col gap-3 bg-gray-50">
+            <!-- Bot Welcome Message (Hardcoded for immediate display, or handled by JS. We'll let JS handle it for the "typing" effect) -->
+        </div>
+
+        <!-- Input Area -->
+        <div class="p-3 bg-white border-t border-gray-200 flex items-center gap-2">
+            <input 
+                type="text" 
+                id="user-input" 
+                placeholder="Type your message here..." 
+                class="flex-1 bg-gray-100 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                onkeypress="handleKeyPress(event)"
+            >
+            <button 
+                onclick="sendMessage()" 
+                class="bg-blue-600 text-white rounded-full p-2 w-10 h-10 flex items-center justify-center hover:bg-blue-700 transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        
+        let messageCount = 0;
+        let isWaitingForBot = false;
+
+        // Add any words you want to filter into this list!
+        const badWords = [ 'shit', 'fuc', 'shingshing', 'sexual reproduction', 'shing', 'gyat', 'fuck', 'darn', 'heck', 'crap', 'stupid', 'dumb', 'idiot', 'jerk', 'loser', 'suck']; 
+
+        function filterSwearWords(text) {
+            let filteredText = text;
+            badWords.forEach(word => {
+                // The 'gi' makes it case-insensitive and replaces all instances
+                const regex = new RegExp(`\\b${word}\\b`, 'gi');
+                filteredText = filteredText.replace(regex, 'oohmama');
+            });
+            return filteredText;
+        }
+
+        const rickrollLyrics = [
+            "🎵 Never gonna give you up 🎵",
+            "🎵 Never gonna let you down 🎵",
+            "🎵 Never gonna run around and desert you 🎵",
+            "🎵 Never gonna make you cry 🎵",
+            "🎵 Never gonna say goodbye 🎵",
+            "🎵 Never gonna tell a lie and hurt you 🎵",
+            "Here is the info you requested: https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        ];
+
+        // Start the chat by making the bot type the initial greeting
+        window.onload = () => {
+            showTypingIndicator();
+            setTimeout(() => {
+                removeTypingIndicator();
+                addMessage("Hi! I am talkCEF, a highly logical AI assistant. How can I help you today?", 'bot');
+            }, 1000);
+        };
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function sendMessage() {
+            let text = userInput.value.trim();
+            if (text === '' || isWaitingForBot) return;
+
+            // Intercept and change the words to "oohmama" before it shows up
+            text = filterSwearWords(text);
+
+            // Add user message
+            addMessage(text, 'user');
+            userInput.value = '';
+            messageCount++;
+            isWaitingForBot = true;
+
+            // Simulate bot thinking/typing
+            showTypingIndicator();
+
+            // Bot responds after a random delay (between 800ms and 2000ms)
+            const delay = Math.floor(Math.random() * 1200) + 800;
+            
+            setTimeout(() => {
+                removeTypingIndicator();
+                generateBotResponse();
+                isWaitingForBot = false;
+            }, delay);
+        }
+
+        function addMessage(text, sender) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `max-w-[80%] rounded-2xl px-4 py-2 shadow-sm ${
+                sender === 'user' 
+                ? 'bg-blue-600 text-white self-end rounded-tr-sm' 
+                : 'bg-white text-gray-800 self-start border border-gray-100 rounded-tl-sm'
+            }`;
+            
+            // Handle links in the rickroll text
+            if (text.includes("http")) {
+                const parts = text.split(/(https?:\/\/[^\s]+)/g);
+                msgDiv.innerHTML = parts.map(part => {
+                    if (part.startsWith('http')) {
+                        return `<a href="${part}" target="_blank" class="text-blue-400 underline hover:text-blue-300">${part}</a>`;
+                    }
+                    return part;
+                }).join('');
+            } else {
+                msgDiv.innerText = text;
+            }
+
+            chatMessages.appendChild(msgDiv);
+            scrollToBottom();
+        }
+
+        function showTypingIndicator() {
+            const indicatorDiv = document.createElement('div');
+            indicatorDiv.id = 'typing-indicator';
+            indicatorDiv.className = 'max-w-[80%] bg-white border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm self-start flex items-center typing-indicator';
+            indicatorDiv.innerHTML = '<span></span><span></span><span></span>';
+            chatMessages.appendChild(indicatorDiv);
+            scrollToBottom();
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        function generateBotResponse() {
+            // Normal AI responses for the first 2 messages
+            if (messageCount === 1) {
+                addMessage("That is an excellent question. I am analyzing the parameters to provide you with the most accurate and helpful information. Could you elaborate slightly on your goal?", 'bot');
+                return;
+            }
+            if (messageCount === 2) {
+                addMessage("Thank you for the clarification. I am compiling the optimal solution based on my extensive knowledge base. Please hold on for just a moment while I process this.", 'bot');
+                return;
+            }
+
+            // The next 3 messages (messages 3, 4, and 5) will be the confused trolling
+            if (messageCount >= 3 && messageCount <= 5) {
+                addMessage("i dont understand what you are talking about , please tell me again, thakyou.", 'bot');
+                return;
+            }
+
+            // The 6th message drops the Rickroll link
+            if (messageCount === 6) {
+                addMessage("here is the link for you're request. https://www.youtube.com/watch?v=dQw4w9WgXcQ", 'bot');
+                return;
+            }
+
+            // After the 6th message, randomly choose between Rickroll (20%) and Gibberish (80%)
+            const isRickroll = Math.random() > 0.8;
+
+            if (isRickroll) {
+                // Pick a random line from the Rickroll array
+                const lyric = rickrollLyrics[Math.floor(Math.random() * rickrollLyrics.length)];
+                addMessage(lyric, 'bot');
+            } else {
+                // Generate Gibberish
+                const gibberish = generateGibberish();
+                addMessage(gibberish, 'bot');
+            }
+        }
+
+        function generateGibberish() {
+            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+{}:"<>?~`        '; // Extra spaces for word breaks
+            const minLength = 10;
+            const maxLength = 60;
+            const length = Math.floor(Math.random() * (maxLength - minLength + 1)) + minLength;
+            
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            
+            // Sometimes throw in some weird words
+            const weirdWords = ["Bloop", "glrgl", "ZALGO", "404", "ERROR", "bleep", "fnord"];
+            if (Math.random() > 0.7) {
+                result = weirdWords[Math.floor(Math.random() * weirdWords.length)] + " " + result;
+            }
+
+            return result.trim();
+        }
+
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    </script>
+</body>
+</html>
